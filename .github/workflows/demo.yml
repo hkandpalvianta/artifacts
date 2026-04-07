@@ -3,52 +3,66 @@ on:
   push:
     branches:
       - main
+
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
         uses: actions/checkout@v3
+
       - name: Cache dependencies
         id: cache-npm
         uses: actions/cache@v4
         with:
-          path: ~/.npm # Cache the package manager's cache directory
+          path: node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
       - name: Install dependencies
+        if: steps.cache-npm.outputs.cache-hit != 'true'
         run: npm ci
+
       - name: Lint code
         run: npm run lint
+
       - name: Test code
         run: npm run test
+
   build:
     needs: test
     runs-on: ubuntu-latest
-    outputs: 
+    outputs:
       build_output: ${{ steps.set_output.outputs.test }}
-      
+
     steps:
       - name: Get code
         uses: actions/checkout@v3
+
       - name: Cache dependencies
         id: cache-npm
         uses: actions/cache@v4
         with:
-          path: ~/.npm # Cache the package manager's cache directory
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}  
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
       - name: Install dependencies
+        if: steps.cache-npm.outputs.cache-hit != 'true'
         run: npm ci
+
       - name: Build website
         run: npm run build
+
       - name: Set output
         id: set_output
-        run: echo "test=123" >> $GITHUB_OUTPUT  
+        run: echo "test=123" >> $GITHUB_OUTPUT
+
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: dist-prod
           path: dist
           retention-days: 1
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -57,8 +71,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: dist-prod
+
       - name: Deploy
         run: ls
+
   postdeploy:
     needs: build
     runs-on: ubuntu-latest
