@@ -30,7 +30,7 @@ jobs:
         run: npm run build
       - name: Set output
         id: set_output
-        run: echo "test=${ 1+3 }" >> $GITHUB_OUTPUT  
+        run: echo "test=123" >> $GITHUB_OUTPUT  
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
