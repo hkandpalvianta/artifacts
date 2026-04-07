@@ -18,6 +18,9 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
+    outputs: 
+      build_output: ${{ steps.set_output.outputs.test }}
+      
     steps:
       - name: Get code
         uses: actions/checkout@v3
@@ -25,6 +28,9 @@ jobs:
         run: npm ci
       - name: Build website
         run: npm run build
+      - name: Set output
+        id: set_output
+        run: echo "test=${ 1+3 }" >> $GITHUB_OUTPUT  
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -41,3 +47,9 @@ jobs:
           name: dist-prod
       - name: Deploy
         run: ls
+  postdeploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy
+        run: echo "${{ needs.build.outputs.build_output }}"
